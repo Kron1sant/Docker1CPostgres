@@ -12,13 +12,24 @@
 
 Например:
 ```shell 
-docker build -t docker1c --build-arg SRV1C_VERSION=8.3.18.1661 --build-arg POSTGRES_VERSION=12.7.5.1C .
+docker build -t kron1sant/docker1c:8.3.19.1399-12.7.5 --build-arg SRV1C_VERSION=8.3.19.1399 --build-arg POSTGRES_VERSION=12.7.5.1C .
 ```
 
-Полученный образ можно запустить командой (например):
+Полученный образ можно запустить командой (например для Windows с wsl2):
 ```shell
-docker run -d --rm --name docker1c-run -p 1540:1540 -p 1541:1541 -p 1550:1550 -p 1560-1591:1560-1591 -p 5432:5432 docker1c-1c
+docker run -d -h docker1c -p 1540:1540 -p 1541:1541 -p 1550:1550 -p 1560-1591:1560-1591 -p 5432:5432 -v /D/Logs/docker1c/logs1c:/data/logs1c -v /D/Logs/docker1c/config1c:/data/config1c --name docker1c-run kron1sant/docker1c:8.3.19.1399-12.7.5
 ```
+
+Для СУБД заводится супер пользователь **usr1cv8** с паролем **usr1cv8**.
+
+### Запуст Docker на Windows с WSL2
+Для доступа с локальной (host) машины к docker-контейнеру нужно использовать ip вдрес вирутальной машины WSL (*docker-desktop*).
+Причем 1С требует, чтобы ip ардрес резолвился по имени указанному при запуске агента. Для этого:
+1. Стартуем docker-контейнер с указанием ключа **-h** и указываем люое имя сервера 1С, по котормоу будем работать с базами 1С (`docker run -h docker1c...`)
+2. Получаем ip-адрес вирутальной машины с docker'ом. Например, `wsl -d docker-descktop` и в терминале `ip -4 addr | grep eth0`
+3. Добавляем в файл hosts полученный ip адрес и имя сервера указанное в ключе **-h**
+
+Вместо пунктов 2 и 3 можно воспользоваться скриптом `add_1C_docker_host.ps1`.
 
 ## Описание сборки
 Сборка строится на базе образа Ubuntu:18.04.

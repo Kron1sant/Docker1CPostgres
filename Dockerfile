@@ -5,6 +5,6 @@ ADD ./distr $DISTR_DIR
 ADD *.sh /usr/src/deploy1c/
 WORKDIR /usr/src/deploy1c/
 RUN chmod +x /usr/src/deploy1c/deployer.sh && /usr/src/deploy1c/deployer.sh
-VOLUME /home/usr1cv8/.1cv83/1C/1Cv83
+VOLUME data/logs1c/ /data/config1c/
 EXPOSE 1540 1541 1550 1560-1591 5432
 ENTRYPOINT ["/usr/src/deploy1c/entrypoint.sh"]

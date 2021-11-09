@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# Запускаем Postggres
-pg_ctlcluster 12 main start
+# Запускаем Postgres
+VER_MAJOR_PSQL=`echo $POSTGRES_VERSION | awk -F. '{print $1}'`
+pg_ctlcluster $VER_MAJOR_PSQL main start
+
 # Запускаем 1С
 /opt/1cv8/x86_64/${SRV1C_VERSION}/srv1cv83 start
 # Ждем 10 секунд, чтобы дать время на запуск и получем PID ragent'a
