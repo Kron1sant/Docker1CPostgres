@@ -17,7 +17,9 @@ docker build -t kron1sant/docker1c:8.3.19.1399-12.7.5 --build-arg SRV1C_VERSION=
 
 Полученный образ можно запустить командой (например для Windows с wsl2):
 ```shell
-docker run -d -h docker1c -p 1540:1540 -p 1541:1541 -p 1550:1550 -p 1560-1591:1560-1591 -p 5432:5432 -v /D/Logs/docker1c/logs1c:/data/logs1c -v /D/Logs/docker1c/config1c:/data/config1c --name docker1c-run kron1sant/docker1c:8.3.19.1399-12.7.5
+docker run -d -h docker1c -p 1540:1540 -p 1541:1541 -p 1550:1550 -p 1560-1591:1560-1591 -p 5432:5432 -v /D/Logs/docker1c/logs1c:/data/logs1c -v /D/Logs/docker1c/config1c:/data/config1c -v /D/Logs/docker1c/db:/data/db -v /D/Logs/docker1c/cluster1c:/data/cluster1c --name docker1c-run kron1sant/docker1c:8.3.19.1399-12.7.5
+
+docker run -d -h docker1c -p 1540:1540 -p 1541:1541 -p 1550:1550 -p 1560-1591:1560-1591 -p 5432:5432 -v /D/docker1c/logs1c:/data/logs1c -v /D/docker1c/config1c:/data/config1c --name docker1c-run kron1sant/docker1c:8.3.19.1399-12.7.5
 ```
 
 Для СУБД заводится супер пользователь **usr1cv8** с паролем **usr1cv8**.

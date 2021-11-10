@@ -36,18 +36,8 @@ apt-get -y install $DISTR_DIR_POSTGRES/postgresql-client-${VER_MAJOR_PSQL}*
 apt-get -y install $DISTR_DIR_POSTGRES/postgresql-${VER_MAJOR_PSQL}*
 rm -rf $DISTR_DIR_POSTGRES
 
-# Инициализация кластера
-PG_DATADIR=/data/db
 # При утснановке был создан кластер по умолчанию. Удалим его.
 pg_dropcluster $VER_MAJOR_PSQL main 
-# важно указать кирилическую локаль
-locale-gen ru_RU.UTF-8
-pg_createcluster $VER_MAJOR_PSQL main -d $PG_DATADIR --locale=ru_RU.UTF-8
-# Запустим кластер, чтобы создать пользователя для 1С: usr1cv8 / usr1cv8
-pg_ctlcluster $VER_MAJOR_PSQL main start
-su - postgres -c "createuser -s -i -d -r -l -w usr1cv8"
-su - postgres -c "psql -c \"ALTER ROLE usr1cv8 WITH PASSWORD 'usr1cv8';\""
-pg_ctlcluster $VER_MAJOR_PSQL main stop
 
 # Install 1С
 # Константы
@@ -62,7 +52,7 @@ DISTR_DIR_1C=$DISTR_DIR/distr_1c
 mkdir $DISTR_DIR_1C
 tar -xzf $DISTR_DIR/$DEB_1C_DISTR_NAME -C $DISTR_DIR_1C
 rm -f $DEB_1C_DISTR_NAME
-# Устанавливаем содержиме архива без суффикса -nls
+# Устанавливаем содержимое архива (отбираем все без суффикса -nls)
 find $DISTR_DIR_1C -maxdepth 1 -type f -name '*.deb' | grep -v 'nls' | xargs dpkg -i
 rm -rf $DISTR_DIR/$DISTR_DIR_1C
 # Зависимости для сервера 1С
@@ -80,7 +70,8 @@ mkdir /data/logs1c
 chown usr1cv8:grp1cv8 /data/logs1c
 # Указываем каталог для конфигурационных файлов (logcfg.xml)
 mkdir /data/config1c
-echo ConfLocation=/data/config1c >> /opt/1cv8/conf/conf.cfg
+mkdir /opt/1cv8/x86_64/${SRV1C_VERSION}/conf
+echo ConfLocation=/data/config1c > /opt/1cv8/x86_64/${SRV1C_VERSION}/conf/conf.cfg
 
 # Чистим кеш пакетов и удаляем каталог с дистрибутивами
 apt-get clean

@@ -1,8 +1,17 @@
 #!/bin/bash
 
 # Запускаем Postgres
+# Инициализация кластера
 VER_MAJOR_PSQL=`echo $POSTGRES_VERSION | awk -F. '{print $1}'`
+PG_DATADIR=/data/db
+# Важно указать кирилическую локаль
+locale-gen ru_RU.UTF-8
+pg_createcluster $VER_MAJOR_PSQL main -d $PG_DATADIR --locale=ru_RU.UTF-8
+# Запустим кластер, чтобы создать пользователя для 1С: usr1cv8 / usr1cv8
 pg_ctlcluster $VER_MAJOR_PSQL main start
+su - postgres -c "createuser -s -i -d -r -l -w usr1cv8"
+su - postgres -c "psql -c \"ALTER ROLE usr1cv8 WITH PASSWORD 'usr1cv8';\""
+
 
 # Запускаем 1С
 /opt/1cv8/x86_64/${SRV1C_VERSION}/srv1cv83 start
