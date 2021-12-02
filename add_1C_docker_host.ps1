@@ -1,8 +1,9 @@
-if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Warning "You need ba admin!"
+if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Write-Warning "You need be admin! Press any key to execute as Admin..."
     Read-Host
-    Write-Host "Press any key..."
-    break
+    Write-Host "Press any key to execute this script as admin..."
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    exit
 }
 
 $docker1c_ip = wsl -d docker-desktop -- /bin/sh -c "ip -4 addr |grep -E inet.+eth0 | sed -E 's/.+inet //; s/ brd.+//; s/\/\d+//'"

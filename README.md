@@ -5,30 +5,42 @@
 В папку **distr** разместить файлы дистрибутивов (DEB) для 1С и СУБД. Например:
 * deb64_8_3_18_1661.tar.gz
 * postgresql_12.7_5.1C_amd64_deb.tar.bz2
+Или использовать режим для прямого скачивания дистрибутивов с *releases.1c.ru*. Для этого в команде `docker build` указать параметры `--build-arg AUTO_DOWNLOAD_DISTR=1` и `--build-arg CRED=./distr/credentials`. Где **./distr/credentials** путь к файлу с логином и паролем к порталу 1С. Шаблон файла можно взять отсюда: **distr/credentials.template**
 
-Выполнить команду `docker build` указав необходимые аргументы:
-* SRV1C_VERSION - версия 1С
-* POSTGRES_VERSION - версия СУБД PostgreSQL
+Если в сборку требуется включить Web-сервер, то в команде `docker build` необходимо добавть параметр `--build-arg INSTALL_APACHE=1`.
 
-Например:
+В обязательном порядке для `docker build` указываются параметры:
+* `--build-arg SRV1C_VERSION=8.3.19.1417`, где вместо *8.3.19.1417* версия 1С (в формате: 4 разряда разделенных точками)
+* `--build-arg POSTGRES_VERSION=12.7-5.1C`, где *12.7-5.1C* версия СУБД PostgreSQL (в формате "как в списке дистрибутивов на портале")
+
+Например, сборка образа 1С 8.3.19.1417 с PostgreSQL 12.7-5.1C и Apache2 (релизы будут скачены с портала 1С, поэтому важно перед запуском подготовить файл **./distr/credentials**):
 ```shell 
-docker build -t kron1sant/docker1c:8.3.19.1399-12.7.5 --build-arg SRV1C_VERSION=8.3.19.1399 --build-arg POSTGRES_VERSION=12.7.5.1C .
+docker build -t kron1sant/docker1c:8.3.19.1417-12.7-5.1C-apache2 --build-arg SRV1C_VERSION=8.3.19.1417 --build-arg POSTGRES_VERSION=12.7-5.1C --build-arg AUTO_DOWNLOAD_DISTR=1 --build-arg CRED=./distr/credentials --build-arg INSTALL_APACHE=1 .
 ```
 
-Полученный образ можно запустить командой (например для Windows с wsl2):
+Полученный образ можно запустить командой (пример для Windows с WSL2):
 ```shell
-docker run -d -h docker1c -p 1540:1540 -p 1541:1541 -p 1550:1550 -p 1560-1591:1560-1591 -p 5432:5432 -v /D/Logs/docker1c/logs1c:/data/logs1c -v /D/Logs/docker1c/config1c:/data/config1c -v /D/Logs/docker1c/db:/data/db -v /D/Logs/docker1c/cluster1c:/data/cluster1c --name docker1c-run kron1sant/docker1c:8.3.19.1399-12.7.5
-
-docker run -d -h docker1c -p 1540:1540 -p 1541:1541 -p 1550:1550 -p 1560-1591:1560-1591 -p 5432:5432 -v /D/docker1c/logs1c:/data/logs1c -v /D/docker1c/config1c:/data/config1c --name docker1c-run kron1sant/docker1c:8.3.19.1399-12.7.5
+docker run -d -h docker1c -m 6g -p 8080:80 -p 1540:1540 -p 1541:1541 -p 1550:1550 -p 1560-1591:1560-1591 -p 5432:5432 -v /D/docker1c/logs1c:/data/logs1c -v /D/docker1c/config1c:/data/config1c --name docker1c-run kron1sant/docker1c:8.3.19.1417-12.7-5.1C-apache2
 ```
 
-Для СУБД заводится супер пользователь **usr1cv8** с паролем **usr1cv8**.
+Для доступа к СУБД можно использовать супер пользователя **usr1cv8** с паролем **usr1cv8**.
+
+### Упрощение сборки и запуска
+Для минимальной сборки с конкретной версией платформы 1С можно вызвать скрпит:
+```cmd
+.\build_image.cmd 8.3.19.1417
+```
+
+Для запуска получившейся сборки:
+```cmd
+.\run_image.cmd 8.3.19.1417
+```
 
 ### Запуст Docker на Windows с WSL2
-Для доступа с локальной (host) машины к docker-контейнеру нужно использовать ip вдрес вирутальной машины WSL (*docker-desktop*).
-Причем 1С требует, чтобы ip ардрес резолвился по имени указанному при запуске агента. Для этого:
-1. Стартуем docker-контейнер с указанием ключа **-h** и указываем люое имя сервера 1С, по котормоу будем работать с базами 1С (`docker run -h docker1c...`)
-2. Получаем ip-адрес вирутальной машины с docker'ом. Например, `wsl -d docker-descktop` и в терминале `ip -4 addr | grep eth0`
+Для доступа с локальной (host) машины к docker-контейнеру нужно использовать ip адрес вирутальной машины WSL (*docker-desktop*).
+Причем 1С требует, чтобы ip адрес резолвился по имени указанному при запуске агента. Для этого:
+1. Стартуем docker-контейнер с указанием ключа **-h** и указываем любое имя сервера 1С 9(в примере выше - это **docker1C**), по котормоу будем работать с базами 1С (`docker run -h docker1c...`)
+2. Получаем ip-адрес вирутальной машины с docker'ом. Например, в командной строке: `wsl -d docker-descktop`, после чего в терминале: `ip -4 addr | grep eth0`
 3. Добавляем в файл hosts полученный ip адрес и имя сервера указанное в ключе **-h**
 
 Вместо пунктов 2 и 3 можно воспользоваться скриптом `add_1C_docker_host.ps1`.
@@ -39,3 +51,17 @@ docker run -d -h docker1c -p 1540:1540 -p 1541:1541 -p 1550:1550 -p 1560-1591:15
 * **deployer.sh** - служит для распаковки архивов и устанвки 1С и postgres в момент пострения образа. Все дистрибутивы удаляются из образа после установки.
 * **entrypoint.sh** - запускается postgres и 1С в момент запуска контейнера.
 
+## Нестандартный сценарий
+Можно запустить несколько контейнеров на одной машине, организовав таким образом кластер 1С. Для этого у второго контейнера надо:
+* определить другое имя `-h docker1c_2` и прописать это имя в hosts (ip адрес тот же)
+* определить нестандартные порты: `-e SRV1CV8_PORT=2540 -e SRV1CV8_REGPORT=2541 -e SRV1CV8_RANGE=2560:2591` и `-p 2540:2540 -p 2541:2541 -p 2550:2550 -p 2560-2591:2560-2591` (если просто пробросить порты при запуске контейнера без переопределния внутренних портов, кластер 1С будет нестабильным)
+Дополнительно можно:
+* указать единый сервер отладки: `e SRV1CV8_DEBUG_ADDR=docker1c`
+* отключить СУБД во втором контейнере:  `-e POSTGRES_OFF=1` 
+* ограничить память в 3Гб: `-m 3g`
+* сделать контейнер временным (после завершения работы, он полностью удалится): `--rm`
+
+Пример, выполняющий все описанные выше кейсы:
+```cmd
+docker run -d --rm -h docker1c_2 -m 3g -p 2540:2540 -p 2541:2541 -p 2550:2550 -p 2560-2591:2560-2591 -v /D/docker1c/logs1c_2:/data/logs1c -v /D/docker1c/config1c:/data/config1c --name docker1c-run_2 -e SRV1CV8_PORT=2540 -e SRV1CV8_REGPORT=2541 -e SRV1CV8_RANGE=2560:2591 -e SRV1CV8_DEBUG_ADDR=docker1c -e POSTGRES_OFF=1 kron1sant/docker1c:8.3.19.1417-12.7-5.1C
+```
